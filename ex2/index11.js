@@ -9,6 +9,11 @@ window.addEventListener("load", function(){
     var tbodyNode = noticeList.querySelector("#sec1 tbody");
     var tbodyNode2 = noticeList2.querySelector("#sec2 tbody");
     var tbodyNode3 = noticeList3.querySelector("#sec3 tbody");
+    var inputbox = document.createElement('input');
+    inputbox.type = 'checkbox';
+    
+    var inputbox2 = document.createElement('input');
+    inputbox2.type = 'checkbox';
 
     xhr.open('GET', 'http://220.85.155.13:5187/categories', true);
 
@@ -18,21 +23,24 @@ window.addEventListener("load", function(){
         }
         a = JSON.parse(this.responseText);
         
-        function insert() {
-            for(var i=0; i<a.categoryResponses.length; i++) {
+        function insert(categories) {
+            for(var i=0; i<categories.length; i++) {
+                input.name = "member" + i;
                 var cloneNode = document.importNode(template1.content, true);
                 var tds = cloneNode.querySelectorAll("td");
-                tds[0].textContent = a.categoryResponses[i].categoryNo;
-                tds[1].textContent = a.categoryResponses[i].name; 
+                tds[0].append(inputbox);
+                tds[1].textContent = a.categoryResponses[i].categoryNo;
+                tds[2].textContent = a.categoryResponses[i].name; 
                 tbodyNode.appendChild(cloneNode);
             }
         }
-        insert();
+        insert(a.categoryResponses);
 
         function f_test(category, categoryNo, depth) {
             category.find(data => {
                 if(data.categoryNo === categoryNo) {
                     if(depth === 's1') {
+                        // alert("dd");
                         child(template2, category, categoryNo, data, tbodyNode2);
                     } else if(depth === 's2') {
                         child(template3, category, categoryNo, data, tbodyNode3);
@@ -45,39 +53,39 @@ window.addEventListener("load", function(){
         }
 
         function child(num, category, categoryNo, data, num2) {
-            var cloneNode = document.importNode(num.content, true);
-            var tds = cloneNode.querySelectorAll("td");
+            let cloneNode = document.importNode(num.content, true);
+            let tds = cloneNode.querySelectorAll("td");
 
             for(var i = 0; i < category.length; i++) {
                 if(data.categoryNo === category[i].categoryNo) {
-                    tds[0].textContent = category[i].children[0].categoryNo;
-                    tds[1].textContent = category[i].children[0].name;
-                    num2.appendChild(cloneNode);
+                    if(category[i].children.length > 0) {
+                        // tds[0].append(inputbox2);
+                        tds[1].textContent = category[i].children[0].categoryNo;
+                        tds[2].textContent = category[i].children[0].name;
+                        num2.appendChild(cloneNode);
+                    }
                  }
              }
         }
 
         function click1(num) {
             num.onclick = function(e) {
+                // console.log(e);
                 tbodyNode2.innerHTML = "";
                 tbodyNode3.innerHTML = "";
-                var toto = Number(this.children[0].textContent);
-                f_test(a.categoryResponses, toto, this.parentNode.parentNode.parentNode.className);
+                var toto = parseInt(e.target.parentNode.textContent);
+                f_test(a.categoryResponses, toto, this.parentNode.parentNode.className);
                 function click2(num) {
                     num.onclick = function(e) {
                         this.onclick = null;
-                        var toto = Number(this.children[0].textContent);
-                        f_test(a.categoryResponses, toto, this.parentNode.parentNode.parentNode.className);
+                        var toto = parseInt(e.target.parentNode.textContent);
+                        f_test(a.categoryResponses, toto, this.parentNode.parentNode.className);
                     }
                 }
-                for(var i = 0; i < tbodyNode2.children.length; i++) {
-                    click2(tbodyNode2.children[i]);
-                }
+                click2(tbodyNode2);
             }
         }
-        for(var i = 0; i < a.categoryResponses.length; i++) {
-            click1(tbodyNode.children[i]);
-        }
+        click1(tbodyNode);
     }
 
     xhr.send();
